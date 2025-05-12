@@ -1,0 +1,51 @@
+import json
+import csv
+import os
+
+# Define the order of the fields based on the header of export.txt
+# Change to match your own field names
+fields = [
+    "Complete", "Title", "Description", "Street View", "Photographer", "Photography Studio",
+    "Sender", "Recipient", "Recipient Address", "Portrait Subject", "Annotation", "Message",
+    "Notes", "Postal Data", "Publisher", "Publisher Location", "Printer Location",
+    "Postcard Series", "Series Number", "Serial Number", "Year of Creation", "Date Mailed",
+    "Date of Scanning", "Digital Format", "Physical Description", "Identifier", "Language",
+    "Related Item", "Historical Names", "Signs and Banners", "Subject", "Geography",
+    "Subject Address", "Geographic Coordinates", "Date Range", "All Search Years", "Type",
+    "Format", "Collector", "Usage Statement", "Digital Publisher", "Binder", "Private Notes",
+    "wpltag", "OCLC number", "Date created", "Date modified", "Reference URL", "CONTENTdm number",
+    "CONTENTdm file name", "Archival file", "CONTENTdm file path"
+]
+
+def process_json_file(input_json_path):
+    # Read the JSON data
+    with open(input_json_path, 'r') as json_file:
+        data = json.load(json_file)
+
+    # Create a dictionary with default empty values for missing fields
+    output_data = {field: data.get(field, "") for field in fields}
+
+    # Get the parent directory and its name
+    parent_directory = os.path.dirname(os.path.dirname(input_json_path))
+    parent_folder_name = os.path.basename(parent_directory)
+    output_txt_path = os.path.join(parent_directory, f'{parent_folder_name}.txt')
+
+    # Write the data to a text file in the specified format
+    with open(output_txt_path, 'w', newline='') as txt_file:
+        writer = csv.DictWriter(txt_file, fieldnames=fields, delimiter='\t')
+        writer.writeheader()
+        writer.writerow(output_data)
+
+    print(f"Data exported successfully to {output_txt_path}")
+
+def scan_directory(root_directory):
+    for dirpath, _, filenames in os.walk(root_directory):
+        for filename in filenames:
+            if filename == 'output.json':
+                input_json_path = os.path.join(dirpath, filename)
+                print(f"Starting {input_json_path}")
+                process_json_file(input_json_path)
+
+# Replace 'root_directory' with the path to the root directory you want to scan
+root_directory = '/mnt/d/B3A'
+scan_directory(root_directory)
